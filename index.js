@@ -10,9 +10,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// reef_techno
-// uab1arxV24bOFBdp
-
 // mongodb
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qczjssr.mongodb.net/?retryWrites=true&w=majority`;
@@ -34,6 +31,12 @@ async function run() {
     app.post("/products", async (req, res) => {
       const AllProducts = req.body;
       const result = await productsCollection.insertOne(AllProducts);
+      res.send(result);
+    });
+
+    app.get("/products", async (req, res) => {
+      const cursor = productsCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
