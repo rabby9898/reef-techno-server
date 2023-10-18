@@ -26,6 +26,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const productsCollection = client.db("productDB").collection("product");
+    const cartCollection = client.db("productDB").collection("cart");
 
     // add product CREATE
     app.post("/products", async (req, res) => {
@@ -46,6 +47,53 @@ async function run() {
       const result = await productsCollection.findOne(query);
       res.send(result);
     });
+
+    app.put("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedProducts = req.body;
+
+      const products = {
+        $set: {
+          imgUrl: updatedProducts.imgUrl,
+          name: updatedProducts.name,
+          brandName: updatedProducts.brandName,
+          price: updatedProducts.price,
+          type: updatedProducts.type,
+          description: updatedProducts.description,
+          rating: updatedProducts.rating,
+        },
+      };
+
+      const result = await productsCollection.updateOne(
+        filter,
+        products,
+        options
+      );
+      res.send(result);
+    });
+
+    // Add to Cart Create
+    app.post("/add-to-cart", async (req, res) => {
+      const cartProducts = req.body;
+      const result = await cartCollection.insertOne(cartProducts);
+      res.send(result);
+    });
+    // Add to Cart Get
+    app.get("/add-to-cart", async (req, res) => {
+      const cursor = cartCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    // delete CArt
+    app.delete("/add-to-cart/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: id };
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
